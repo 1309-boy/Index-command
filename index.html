@@ -240,7 +240,7 @@
             desc: "동적 인덱싱 원리를 이용한 커맨드 생성 도구",
             alert: "⚠️ 경고: 중복된 스코어 값이 존재합니다!",
             info: "<b>💡 참고 사항:</b><br>각 항목의 스코어는 자연스럽게 <b>다음 항목의 스코어 직전까지</b> 범위로 이어집니다.<br>(예: [2: 사과], [5: 나무] 입력 시 → 2~4점은 사과, 5점 이상은 나무 출력)",
-            scoreLabel: "사용할 스코어 이름:",
+            scoreLabel: "스코어 이름:",
             addBtn: "+ 항목 추가",
             genBtn: "최적화 커맨드 생성",
             copyBtn: "결과 복사하기",
@@ -260,10 +260,10 @@
             copyMsg: "Copied!"
         },
         ja: {
-            title: "MCBE動적インデックス生成器",
-            desc: "動적インデックスの原理を利用したツール",
+            title: "MCBE動的インデックス生成器",
+            desc: "動的インデックスの原理を利用したツール",
             alert: "⚠️ 警告: 重複するスコア値が存在します！",
-            info: "<b>💡 参考事項:</b><br>各項目のスコアは、自然に<b>次の項目のスコアの直前まで</b>の範囲として繋がります。<br>(例: [2: リンゴ], [5: 木] 入力時 → 2~4点はリンゴ、5点以上は木を出力)",
+            info: "<b>💡 参考事項:</b><br>各項目のスコアは、自然に<b>次の項目のスコアの直前まで</b>繋がります。<br>(例: [2: リンゴ], [5: 木] 入力時 → 2~4点はリンゴ、5点以上は木を出力)",
             scoreLabel: "スコア名:",
             addBtn: "+ 項目を追加",
             genBtn: "コマンドを生成",
@@ -291,18 +291,26 @@
         });
     }
 
-    // 다음 예상 스코어 계산 함수
     function getNextScoreHint() {
         const scoreInputs = document.querySelectorAll('.score');
         let maxVal = -1;
         scoreInputs.forEach(input => {
-            const val = parseInt(input.value || input.placeholder);
+            const val = parseInt(input.value || input.placeholder || -1);
             if (!isNaN(val) && val > maxVal) maxVal = val;
         });
         return maxVal + 1;
     }
 
     function addRow() {
+        // 1. 기존에 비어있는 스코어 칸들을 Placeholder 값으로 실제 확정시킴
+        const scoreInputs = document.querySelectorAll('.score');
+        scoreInputs.forEach(input => {
+            if (input.value === "" && input.placeholder !== "") {
+                input.value = input.placeholder;
+            }
+        });
+
+        // 2. 새 항목 추가
         const container = document.getElementById('input-container');
         const nextHint = getNextScoreHint();
         const div = document.createElement('div');
@@ -314,6 +322,8 @@
         `;
         container.appendChild(div);
         container.scrollTop = container.scrollHeight;
+
+        // 3. 중복 검사 실행
         validateAll();
     }
 
@@ -321,20 +331,20 @@
         const scoreInputs = document.querySelectorAll('.score');
         const alertBox = document.getElementById('ui-alert');
         const genBtn = document.getElementById('ui-gen-btn');
-        const scores = [];
+        const scoreList = [];
         let hasDuplicate = false;
 
         scoreInputs.forEach(input => input.classList.remove('error'));
+
         scoreInputs.forEach((input) => {
-            // 사용자가 입력한 값이 없으면 placeholder 값을 스코어로 간주 (하지만 중복 검사는 입력된 값 위주)
             const val = input.value;
             if (val === "") return;
             
-            if (scores.includes(val)) {
+            if (scoreList.includes(val)) {
                 hasDuplicate = true;
                 scoreInputs.forEach(i => { if(i.value === val) i.classList.add('error'); });
             }
-            scores.push(val);
+            scoreList.push(val);
         });
 
         alertBox.style.display = hasDuplicate ? 'block' : 'none';
@@ -348,7 +358,6 @@
         let data = [];
 
         for (let i = 0; i < scoreEls.length; i++) {
-            // 값이 비어있으면 placeholder 값을 가져옴
             const scoreVal = scoreEls[i].value !== "" ? scoreEls[i].value : scoreEls[i].placeholder;
             const textVal = textEls[i].value;
 
@@ -358,8 +367,6 @@
         }
 
         if (data.length === 0) return;
-        
-        // 스코어 순서대로 정렬 (사용자가 뒤죽박죽 입력해도 로직 보호)
         data.sort((a, b) => a.s - b.s);
 
         const makeSubGroup = (items) => {
