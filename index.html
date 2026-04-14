@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MCBE Indexing Generator Pro</title>
     <style>
         :root {
@@ -14,11 +14,11 @@
         }
 
         body {
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            font-family: 'Pretendard', sans-serif;
             background-color: #f0f2f5;
             color: var(--dark);
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             display: flex;
             justify-content: center;
         }
@@ -27,34 +27,29 @@
             width: 100%;
             max-width: 850px;
             background: white;
-            padding: 40px;
-            border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            position: relative;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            box-sizing: border-box;
         }
 
+        /* Language Switcher - 상단 중앙 배치 */
         .lang-switch {
-            position: absolute;
-            top: 25px;
-            right: 25px;
             display: flex;
-            gap: 10px;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
         }
 
         .lang-btn {
-            font-size: 24px;
+            font-size: 28px;
             cursor: pointer;
             background: none;
             border: 2px solid transparent;
-            border-radius: 8px;
-            padding: 4px;
+            border-radius: 10px;
+            padding: 5px;
             transition: 0.2s;
-            filter: grayscale(0.6);
-        }
-
-        .lang-btn:hover {
-            filter: grayscale(0);
-            transform: scale(1.1);
+            filter: grayscale(0.8);
         }
 
         .lang-btn.active {
@@ -63,60 +58,63 @@
             background: rgba(39, 174, 96, 0.05);
         }
 
-        h2 { margin-top: 0; font-weight: 800; text-align: center; }
-        .description { text-align: center; color: var(--text-gray); margin-bottom: 25px; }
+        h2 { margin: 10px 0 5px 0; font-weight: 800; text-align: center; font-size: 1.5rem; }
+        .description { text-align: center; color: var(--text-gray); margin-bottom: 20px; font-size: 0.9rem; }
 
         .info-box {
             background: var(--light-bg);
             border-left: 5px solid var(--primary);
-            padding: 15px 20px;
+            padding: 15px;
             border-radius: 12px;
-            margin-bottom: 25px;
-            font-size: 0.95em;
-            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            line-height: 1.5;
         }
 
         .alert-box {
             background: #fff5f5;
             color: var(--error);
             border: 1px solid var(--error);
-            padding: 12px;
+            padding: 10px;
             border-radius: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             text-align: center;
             font-weight: bold;
+            font-size: 0.85rem;
             display: none;
         }
 
         .config-section {
             display: flex;
-            align-items: center;
-            gap: 15px;
+            flex-direction: column;
+            gap: 8px;
             margin-bottom: 20px;
             font-weight: bold;
+            font-size: 0.9rem;
         }
 
         .config-section input {
-            padding: 10px;
+            padding: 12px;
             border: 1px solid #ddd;
-            border-radius: 8px;
-            flex: 1;
+            border-radius: 10px;
+            font-size: 1rem;
         }
 
+        /* Scroll Window */
         .scroll-window {
-            max-height: 380px;
+            max-height: 300px;
             overflow-y: auto;
             border: 1px solid #eee;
             border-radius: 15px;
-            padding: 20px;
+            padding: 10px;
             background: #fafafa;
             margin-bottom: 15px;
         }
 
         .row {
             display: flex;
-            gap: 12px;
-            margin-bottom: 12px;
+            gap: 8px;
+            margin-bottom: 10px;
             align-items: center;
         }
 
@@ -124,32 +122,23 @@
             padding: 12px;
             border: 1px solid #ddd;
             border-radius: 10px;
-            font-size: 14px;
+            font-size: 16px; /* 모바일 줌 방지 */
             transition: all 0.2s;
+            box-sizing: border-box;
         }
 
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
-        }
-
-        input.score { flex: 0 0 130px; }
+        input.score { flex: 0 0 85px; text-align: center; }
         input.text { flex: 1; }
-
-        input.error {
-            border-color: var(--error) !important;
-            background-color: #fffafa;
-            color: var(--error);
-        }
+        input.error { border-color: var(--error) !important; background-color: #fffafa; }
 
         button {
-            padding: 12px 20px;
+            padding: 14px 20px;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             cursor: pointer;
             font-weight: 700;
             transition: 0.2s;
+            touch-action: manipulation;
         }
 
         .btn-add {
@@ -160,34 +149,32 @@
             margin-bottom: 15px;
         }
 
-        .btn-add:hover { background: #f1f1f1; border-color: #999; }
-
         .btn-gen {
             background: var(--primary);
             color: white;
             width: 100%;
-            font-size: 16px;
+            font-size: 1rem;
         }
 
-        .btn-gen:hover { background: #219150; transform: translateY(-1px); }
-        .btn-gen:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        .btn-gen:disabled { background: #ccc; }
 
         .btn-del {
             background: #fdf2f2;
             color: var(--error);
-            padding: 10px 15px;
+            padding: 12px;
+            flex: 0 0 45px;
         }
 
         textarea {
             width: 100%;
-            height: 180px;
-            margin-top: 25px;
-            padding: 20px;
+            height: 150px;
+            margin-top: 20px;
+            padding: 15px;
             border-radius: 15px;
             background: #2d3436;
             color: #ecf0f1;
             font-family: monospace;
-            font-size: 13px;
+            font-size: 0.8rem;
             border: none;
             resize: none;
             box-sizing: border-box;
@@ -198,6 +185,16 @@
             color: white;
             width: 100%;
             margin-top: 10px;
+        }
+
+        /* PC 버전 레이아웃 수정 */
+        @media (min-width: 600px) {
+            .container { padding: 40px; }
+            .config-section { flex-direction: row; align-items: center; }
+            .row { gap: 12px; }
+            input.score { flex: 0 0 130px; }
+            h2 { font-size: 2rem; }
+            .scroll-window { max-height: 400px; }
         }
     </style>
 </head>
@@ -217,8 +214,7 @@
     
     <div class="info-box" id="ui-info">
         <b>💡 참고 사항:</b><br>
-        각 항목의 스코어는 자연스럽게 <b>다음 항목의 스코어 직전까지</b> 범위로 이어집니다.<br>
-        (예: [2: 사과], [5: 나무] 입력 시 → 2~4점은 사과, 5점 이상은 나무 출력)
+        각 항목의 스코어는 자연스럽게 <b>다음 항목의 스코어 직전까지</b> 범위로 이어집니다.
     </div>
 
     <div class="config-section">
@@ -246,38 +242,38 @@
         ko: {
             title: "MCBE 동적 인덱싱 제너레이터",
             desc: "동적 인덱싱 원리를 이용한 커맨드 생성 도구",
-            alert: "⚠️ 경고: 중복된 스코어 값이 존재합니다! 항목을 수정해주세요.",
-            info: "<b>💡 참고 사항:</b><br>각 항목의 스코어는 자연스럽게 <b>다음 항목의 스코어 직전까지</b> 범위로 이어집니다.<br>(예: [2: 사과], [5: 나무] 입력 시 → 2~4점은 사과, 5점 이상은 나무 출력)",
+            alert: "⚠️ 경고: 중복된 스코어 값이 존재합니다!",
+            info: "<b>💡 참고 사항:</b><br>각 항목의 스코어는 자연스럽게 <b>다음 항목의 스코어 직전까지</b> 범위로 이어집니다.",
             scoreLabel: "사용할 스코어 이름:",
             addBtn: "+ 항목 추가",
             genBtn: "최적화 커맨드 생성",
             copyBtn: "결과 복사하기",
             placeholderText: "출력할 문자",
-            copyMsg: "커맨드가 클립보드에 복사되었습니다!"
+            copyMsg: "복사되었습니다!"
         },
         en: {
             title: "MCBE Indexing Generator",
-            desc: "Command generation tool using dynamic indexing principles",
-            alert: "⚠️ Warning: Duplicate score values detected! Please fix them.",
-            info: "<b>💡 Note:</b><br>Each score naturally extends to just before the next item's score.<br>(e.g., [2: Apple], [5: Tree] → 2-4 outputs Apple, 5+ outputs Tree)",
+            desc: "Command tool using dynamic indexing",
+            alert: "⚠️ Warning: Duplicate score detected!",
+            info: "<b>💡 Note:</b><br>Scores naturally extend to just before the next item's score.",
             scoreLabel: "Scoreboard Name:",
             addBtn: "+ Add Item",
-            genBtn: "Generate Optimized Command",
+            genBtn: "Generate Command",
             copyBtn: "Copy Result",
             placeholderText: "Text to output",
-            copyMsg: "Command copied to clipboard!"
+            copyMsg: "Copied!"
         },
         ja: {
             title: "MCBE動的インデックス生成器",
-            desc: "動적インデックスの原理を利用したコマンド生成ツール",
-            alert: "⚠️ 警告: 重複するスコア値が存在します！修正してください。",
-            info: "<b>💡 参考事項:</b><br>各項目のスコアは、自然に<b>次の項目のスコアの直前まで</b>の範囲として繋がります。<br>(例: [2: リンゴ], [5: 木] 入力時 → 2~4点はリンゴ、5点以上は木を出力)",
-            scoreLabel: "スコアボード名:",
+            desc: "動的インデックスの原理を利用したツール",
+            alert: "⚠️ 警告: 重複するスコア値が存在します！",
+            info: "<b>💡 参考事項:</b><br>各スコアは自然に<b>次のスコアの直전まで</b>繋がります。",
+            scoreLabel: "スコア名:",
             addBtn: "+ 項目を追加",
-            genBtn: "最適化コマンドを生成",
+            genBtn: "コマンドを生成",
             copyBtn: "結果をコピー",
             placeholderText: "出力する文字",
-            copyMsg: "コマンドをクリップボードにコピーしました！"
+            copyMsg: "コピーしました！"
         }
     };
 
@@ -293,11 +289,7 @@
         document.getElementById('ui-add-btn').innerText = translations[lang].addBtn;
         document.getElementById('ui-gen-btn').innerText = translations[lang].genBtn;
         document.getElementById('ui-copy-btn').innerText = translations[lang].copyBtn;
-        
-        document.querySelectorAll('.text').forEach(el => {
-            el.placeholder = translations[lang].placeholderText;
-        });
-
+        document.querySelectorAll('.text').forEach(el => el.placeholder = translations[lang].placeholderText);
         document.querySelectorAll('.lang-btn').forEach(btn => {
             btn.classList.toggle('active', btn.innerText.includes(lang === 'ko' ? '🇰🇷' : lang === 'en' ? '🇺🇸' : '🇯🇵'));
         });
@@ -308,7 +300,7 @@
         const div = document.createElement('div');
         div.className = 'row';
         div.innerHTML = `
-            <input type="number" class="score" placeholder="Score" oninput="validateAll()">
+            <input type="number" class="score" placeholder="0" oninput="validateAll()">
             <input type="text" class="text" placeholder="${translations[currentLang].placeholderText}" oninput="validateAll()">
             <button class="btn-del" onclick="this.parentElement.remove(); validateAll()">X</button>
         `;
@@ -325,7 +317,6 @@
         let hasDuplicate = false;
 
         scoreInputs.forEach(input => input.classList.remove('error'));
-
         scoreInputs.forEach((input) => {
             const val = input.value;
             if (val === "") return;
@@ -336,13 +327,8 @@
             scores.push(val);
         });
 
-        if (hasDuplicate) {
-            alertBox.style.display = 'block';
-            genBtn.disabled = true;
-        } else {
-            alertBox.style.display = 'none';
-            genBtn.disabled = false;
-        }
+        alertBox.style.display = hasDuplicate ? 'block' : 'none';
+        genBtn.disabled = hasDuplicate;
     }
 
     function generateCommand() {
@@ -350,7 +336,6 @@
         const scoreEls = document.querySelectorAll('.score');
         const textEls = document.querySelectorAll('.text');
         let data = [];
-
         for (let i = 0; i < scoreEls.length; i++) {
             if (scoreEls[i].value !== "" && textEls[i].value !== "") {
                 data.push({ s: parseInt(scoreEls[i].value), t: textEls[i].value });
@@ -372,7 +357,6 @@
         } else {
             let groups = [];
             for (let i = 0; i < data.length; i += 8) groups.push(data.slice(i, i + 8));
-            
             if (groups.length <= 8) {
                 const selectors = groups.map(g => `{"selector":"@s[scores={${obj}=${g[0].s}..}]"}`);
                 const subs = groups.map(g => makeSubGroup(g)).reverse();
@@ -396,6 +380,7 @@
         const output = document.getElementById("output");
         if(!output.value) return;
         output.select();
+        output.setSelectionRange(0, 99999);
         document.execCommand("copy");
         alert(translations[currentLang].copyMsg);
     }
