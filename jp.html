@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCBE Indexing Generator Pro</title>
+    <style>
+        :root {
+            --primary: #27ae60;
+            --error: #e74c3c;
+            --dark: #2c3e50;
+            --light-bg: #f8f9fa;
+            --text-gray: #7f8c8d;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: #f0f2f5;
+            color: var(--dark);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .lang-switch {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 4px;
+            transition: 0.2s;
+            filter: grayscale(0.6);
+        }
+
+        .lang-btn:hover {
+            filter: grayscale(0);
+            transform: scale(1.1);
+        }
+
+        .lang-btn.active {
+            filter: grayscale(0);
+            border-color: var(--primary);
+            background: rgba(39, 174, 96, 0.05);
+        }
+
+        h2 { margin-top: 0; font-weight: 800; text-align: center; }
+        .description { text-align: center; color: var(--text-gray); margin-bottom: 25px; }
+
+        .info-box {
+            background: var(--light-bg);
+            border-left: 5px solid var(--primary);
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .alert-box {
+            background: #fff5f5;
+            color: var(--error);
+            border: 1px solid var(--error);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+
+        .config-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .config-section input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            flex: 1;
+        }
+
+        .scroll-window {
+            max-height: 380px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 15px;
+            padding: 20px;
+            background: #fafafa;
+            margin-bottom: 15px;
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+
+        input {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+        }
+
+        input.score { flex: 0 0 130px; }
+        input.text { flex: 1; }
+
+        input.error {
+            border-color: var(--error) !important;
+            background-color: #fffafa;
+            color: var(--error);
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: 0.2s;
+        }
+
+        .btn-add {
+            background: white;
+            color: var(--dark);
+            border: 2px dashed #ccc;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .btn-add:hover { background: #f1f1f1; border-color: #999; }
+
+        .btn-gen {
+            background: var(--primary);
+            color: white;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        .btn-gen:hover { background: #219150; transform: translateY(-1px); }
+        .btn-gen:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+
+        .btn-del {
+            background: #fdf2f2;
+            color: var(--error);
+            padding: 10px 15px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 180px;
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 15px;
+            background: #2d3436;
+            color: #ecf0f1;
+            font-family: monospace;
+            font-size: 13px;
+            border: none;
+            resize: none;
+            box-sizing: border-box;
+        }
+
+        .copy-btn {
+            background: #3498db;
+            color: white;
+            width: 100%;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="lang-switch">
+        <button class="lang-btn active" onclick="setLang('ko')">🇰🇷</button>
+        <button class="lang-btn" onclick="setLang('en')">🇺🇸</button>
+        <button class="lang-btn" onclick="setLang('ja')">🇯🇵</button>
+    </div>
+
+    <h2 id="ui-title">MCBE 동적 인덱싱 제너레이터</h2>
+    <p class="description" id="ui-desc">동적 인덱싱 원리를 이용한 커맨드 생성 도구</p>
+
+    <div class="alert-box" id="ui-alert">⚠️ 경고: 중복된 스코어 값이 존재합니다!</div>
+    
+    <div class="info-box" id="ui-info">
+        <b>💡 참고 사항:</b><br>
+        각 항목의 스코어는 자연스럽게 <b>다음 항목의 스코어 직전까지</b> 범위로 이어집니다.<br>
+        (예: [2: 사과], [5: 나무] 입력 시 → 2~4점은 사과, 5점 이상은 나무 출력)
+    </div>
+
+    <div class="config-section">
+        <span id="ui-score-label">사용할 스코어 이름:</span>
+        <input type="text" id="objName" value="play" oninput="validateAll()">
+    </div>
+
+    <div class="scroll-window" id="input-container">
+        <div class="row">
+            <input type="number" class="score" placeholder="Score" value="0" oninput="validateAll()">
+            <input type="text" class="text" placeholder="출력할 문자" oninput="validateAll()">
+            <button class="btn-del" style="visibility: hidden;">X</button>
+        </div>
+    </div>
+
+    <button class="btn-add" id="ui-add-btn" onclick="addRow()">+ 항목 추가</button>
+    <button class="btn-gen" id="ui-gen-btn" onclick="generateCommand()">최적화 커맨드 생성</button>
+
+    <textarea id="output" readonly placeholder="Output..."></textarea>
+    <button class="copy-btn" id="ui-copy-btn" onclick="copyCommand()">결과 복사하기</button>
+</div>
+
+<script>
+    const translations = {
+        ko: {
+            title: "MCBE 동적 인덱싱 제너레이터",
+            desc: "동적 인덱싱 원리를 이용한 커맨드 생성 도구",
+            alert: "⚠️ 경고: 중복된 스코어 값이 존재합니다! 항목을 수정해주세요.",
+            info: "<b>💡 참고 사항:</b><br>각 항목의 스코어는 자연스럽게 <b>다음 항목의 스코어 직전까지</b> 범위로 이어집니다.<br>(예: [2: 사과], [5: 나무] 입력 시 → 2~4점은 사과, 5점 이상은 나무 출력)",
+            scoreLabel: "사용할 스코어 이름:",
+            addBtn: "+ 항목 추가",
+            genBtn: "최적화 커맨드 생성",
+            copyBtn: "결과 복사하기",
+            placeholderText: "출력할 문자",
+            copyMsg: "커맨드가 클립보드에 복사되었습니다!"
+        },
+        en: {
+            title: "MCBE Indexing Generator",
+            desc: "Command generation tool using dynamic indexing principles",
+            alert: "⚠️ Warning: Duplicate score values detected! Please fix them.",
+            info: "<b>💡 Note:</b><br>Each score naturally extends to just before the next item's score.<br>(e.g., [2: Apple], [5: Tree] → 2-4 outputs Apple, 5+ outputs Tree)",
+            scoreLabel: "Scoreboard Name:",
+            addBtn: "+ Add Item",
+            genBtn: "Generate Optimized Command",
+            copyBtn: "Copy Result",
+            placeholderText: "Text to output",
+            copyMsg: "Command copied to clipboard!"
+        },
+        ja: {
+            title: "MCBE動的インデックス生成器",
+            desc: "動적インデックスの原理を利用したコマンド生成ツール",
+            alert: "⚠️ 警告: 重複するスコア値が存在します！修正してください。",
+            info: "<b>💡 参考事項:</b><br>各項目のスコアは、自然に<b>次の項目のスコアの直前まで</b>の範囲として繋がります。<br>(例: [2: リンゴ], [5: 木] 入力時 → 2~4点はリンゴ、5点以上は木を出力)",
+            scoreLabel: "スコアボード名:",
+            addBtn: "+ 項目を追加",
+            genBtn: "最適化コマンドを生成",
+            copyBtn: "結果をコピー",
+            placeholderText: "出力する文字",
+            copyMsg: "コマンドをクリップボードにコピーしました！"
+        }
+    };
+
+    let currentLang = 'ko';
+
+    function setLang(lang) {
+        currentLang = lang;
+        document.getElementById('ui-title').innerText = translations[lang].title;
+        document.getElementById('ui-desc').innerText = translations[lang].desc;
+        document.getElementById('ui-alert').innerText = translations[lang].alert;
+        document.getElementById('ui-info').innerHTML = translations[lang].info;
+        document.getElementById('ui-score-label').innerText = translations[lang].scoreLabel;
+        document.getElementById('ui-add-btn').innerText = translations[lang].addBtn;
+        document.getElementById('ui-gen-btn').innerText = translations[lang].genBtn;
+        document.getElementById('ui-copy-btn').innerText = translations[lang].copyBtn;
+        
+        document.querySelectorAll('.text').forEach(el => {
+            el.placeholder = translations[lang].placeholderText;
+        });
+
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.innerText.includes(lang === 'ko' ? '🇰🇷' : lang === 'en' ? '🇺🇸' : '🇯🇵'));
+        });
+    }
+
+    function addRow() {
+        const container = document.getElementById('input-container');
+        const div = document.createElement('div');
+        div.className = 'row';
+        div.innerHTML = `
+            <input type="number" class="score" placeholder="Score" oninput="validateAll()">
+            <input type="text" class="text" placeholder="${translations[currentLang].placeholderText}" oninput="validateAll()">
+            <button class="btn-del" onclick="this.parentElement.remove(); validateAll()">X</button>
+        `;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+        validateAll();
+    }
+
+    function validateAll() {
+        const scoreInputs = document.querySelectorAll('.score');
+        const alertBox = document.getElementById('ui-alert');
+        const genBtn = document.getElementById('ui-gen-btn');
+        const scores = [];
+        let hasDuplicate = false;
+
+        scoreInputs.forEach(input => input.classList.remove('error'));
+
+        scoreInputs.forEach((input) => {
+            const val = input.value;
+            if (val === "") return;
+            if (scores.includes(val)) {
+                hasDuplicate = true;
+                scoreInputs.forEach(i => { if(i.value === val) i.classList.add('error'); });
+            }
+            scores.push(val);
+        });
+
+        if (hasDuplicate) {
+            alertBox.style.display = 'block';
+            genBtn.disabled = true;
+        } else {
+            alertBox.style.display = 'none';
+            genBtn.disabled = false;
+        }
+    }
+
+    function generateCommand() {
+        const obj = document.getElementById('objName').value || 'play';
+        const scoreEls = document.querySelectorAll('.score');
+        const textEls = document.querySelectorAll('.text');
+        let data = [];
+
+        for (let i = 0; i < scoreEls.length; i++) {
+            if (scoreEls[i].value !== "" && textEls[i].value !== "") {
+                data.push({ s: parseInt(scoreEls[i].value), t: textEls[i].value });
+            }
+        }
+        if (data.length === 0) return;
+        data.sort((a, b) => a.s - b.s);
+
+        const makeSubGroup = (items) => {
+            const n = items.length;
+            const selectors = items.map(item => `{"selector":"@s[scores={${obj}=${item.s}..}]"}`);
+            const lyrics = items.map(item => `{"text":"${item.t}"}`).reverse();
+            return `{"translate":"%%${n + 1}","with":{"rawtext":[${selectors.join(',')},${lyrics.join(',')}]}}`;
+        };
+
+        let result = "";
+        if (data.length <= 8) {
+            result = makeSubGroup(data);
+        } else {
+            let groups = [];
+            for (let i = 0; i < data.length; i += 8) groups.push(data.slice(i, i + 8));
+            
+            if (groups.length <= 8) {
+                const selectors = groups.map(g => `{"selector":"@s[scores={${obj}=${g[0].s}..}]"}`);
+                const subs = groups.map(g => makeSubGroup(g)).reverse();
+                result = `{"translate":"%%${selectors.length + 1}","with":{"rawtext":[${selectors.join(',')},${subs.join(',')}]}}`;
+            } else {
+                const mid = Math.ceil(groups.length / 2);
+                const partA = groups.slice(0, mid);
+                const partB = groups.slice(mid);
+                const buildMid = (gs) => {
+                    const sel = gs.map(g => `{"selector":"@s[scores={${obj}=${g[0].s}..}]"}`);
+                    const sub = gs.map(g => makeSubGroup(g)).reverse();
+                    return `{"translate":"%%${sel.length + 1}","with":{"rawtext":[${sel.join(',')},${sub.join(',')}]}}`;
+                };
+                result = `{"translate":"%%3","with":{"rawtext":[{"selector":"@s[scores={${obj}=${partB[0][0].s}..}]"},{"selector":"@s[scores={${obj}=0..}]"},${buildMid(partB)},${buildMid(partA)}]}}`;
+            }
+        }
+        document.getElementById('output').value = `/execute as @a run titleraw @s actionbar {"rawtext":[${result}]}`;
+    }
+
+    function copyCommand() {
+        const output = document.getElementById("output");
+        if(!output.value) return;
+        output.select();
+        document.execCommand("copy");
+        alert(translations[currentLang].copyMsg);
+    }
+</script>
+
+</body>
+</html>
