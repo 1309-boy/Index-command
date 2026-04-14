@@ -221,7 +221,7 @@
 
     <div class="scroll-window" id="input-container">
         <div class="row">
-            <input type="number" class="score" placeholder="0" value="0" oninput="validateAll()">
+            <input type="number" class="score" placeholder="0" value="0" step="any" oninput="validateAll()">
             <input type="text" class="text" placeholder="Text to output" onfocus="finalizeScore(this)" oninput="validateAll()">
             <button class="btn-del" style="visibility: hidden;">X</button>
         </div>
@@ -262,7 +262,7 @@
         },
         ja: {
             title: "MCBE動的インデックス生成器",
-            desc: "動的インデックスの原理を利用したコマンド生成ツール",
+            desc: "動적インデックスの原理を利用したコマンド生成ツール",
             alert: "⚠️ 警告: 重複するスコア値が存在します！",
             info: "<b>💡 参考事項:</b><br>各項目のスコアは、自然に<b>次の項目のスコアの直前まで</b>繋がります。<br>(例: [2: リンゴ], [5: 木] 入力時 → 2~4点はリンゴ、5点以上は木を出力)",
             scoreLabel: "スコアボード名:",
@@ -307,7 +307,7 @@
         const scoreInputs = document.querySelectorAll('.score');
         let maxVal = -1;
         scoreInputs.forEach(input => {
-            const val = parseInt(input.value || input.placeholder || -1);
+            const val = Math.floor(parseFloat(input.value || input.placeholder || -1));
             if (!isNaN(val) && val > maxVal) maxVal = val;
         });
         return maxVal + 1;
@@ -325,7 +325,7 @@
         const div = document.createElement('div');
         div.className = 'row';
         div.innerHTML = `
-            <input type="number" class="score" placeholder="${nextHint}" oninput="validateAll()">
+            <input type="number" class="score" placeholder="${nextHint}" step="any" oninput="validateAll()">
             <input type="text" class="text" placeholder="${translations[currentLang].placeholderText}" onfocus="finalizeScore(this)" oninput="validateAll()">
             <button class="btn-del" onclick="this.parentElement.remove(); validateAll()">X</button>
         `;
@@ -344,12 +344,16 @@
         scoreInputs.forEach(input => input.classList.remove('error'));
 
         scoreInputs.forEach((input) => {
-            const val = input.value;
-            if (val === "") return;
+            const rawVal = input.value;
+            if (rawVal === "") return;
+            
+            const val = Math.floor(parseFloat(rawVal)).toString();
             
             if (scoreList.includes(val)) {
                 hasDuplicate = true;
-                scoreInputs.forEach(i => { if(i.value === val) i.classList.add('error'); });
+                scoreInputs.forEach(i => { 
+                    if(Math.floor(parseFloat(i.value)).toString() === val) i.classList.add('error'); 
+                });
             }
             scoreList.push(val);
         });
@@ -365,11 +369,12 @@
         let data = [];
 
         for (let i = 0; i < scoreEls.length; i++) {
-            const scoreVal = scoreEls[i].value !== "" ? scoreEls[i].value : scoreEls[i].placeholder;
+            const rawScore = scoreEls[i].value !== "" ? scoreEls[i].value : scoreEls[i].placeholder;
             const textVal = textEls[i].value;
 
-            if (scoreVal !== "" && textVal !== "") {
-                data.push({ s: parseInt(scoreVal), t: textVal });
+            if (rawScore !== "" && textVal !== "") {
+                // 소수점 버림 처리
+                data.push({ s: Math.floor(parseFloat(rawScore)), t: textVal });
             }
         }
 
