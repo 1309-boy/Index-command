@@ -108,11 +108,13 @@
             margin-bottom: 15px;
         }
 
+        /* 입력줄 레이아웃 핵심 교정 */
         .row {
             display: flex;
             gap: 6px;
             margin-bottom: 10px;
             align-items: center;
+            width: 100%;
         }
 
         input {
@@ -124,15 +126,19 @@
             box-sizing: border-box;
         }
 
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+        /* 숫자 칸: 모바일에서도 무조건 작게 고정 */
+        input.score { 
+            width: 55px !important; 
+            flex: none !important; 
+            text-align: center; 
         }
 
-        /* 스코어 칸 가로 비율 극대화 축소 */
-        input.score { flex: 0 0 40px; text-align: center; }
-        input.text { flex: 1; min-width: 0; }
+        /* 텍스트 칸: 남는 공간 전부 차지 */
+        input.text { 
+            flex: 1 !important; 
+            min-width: 0; 
+        }
+
         input.error { border-color: var(--error) !important; background-color: #fffafa; }
 
         button {
@@ -162,11 +168,16 @@
 
         .btn-gen:disabled { background: #ccc; }
 
+        /* 삭제 버튼 크기 최적화 */
         .btn-del {
             background: #fdf2f2;
             color: var(--error);
-            flex: 0 0 40px;
+            width: 40px !important;
+            flex: none !important;
             padding: 12px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         textarea {
@@ -195,7 +206,7 @@
             .container { padding: 40px; }
             .config-section { flex-direction: row; align-items: center; }
             .row { gap: 10px; }
-            input.score { flex: 0 0 45px; }
+            input.score { width: 70px !important; } /* PC에선 조금 더 여유있게 */
             h2 { font-size: 2rem; }
             .scroll-window { max-height: 400px; }
         }
@@ -268,8 +279,8 @@
             copyMsg: "복사되었습니다!"
         },
         ja: {
-            title: "MCBE動적インデックス生成器",
-            desc: "動적インデックスの原理を利用したツール",
+            title: "MCBE動的インデックス生成器",
+            desc: "動的インデックスの原理を利用したコマンド生成ツール",
             alert: "⚠️ 警告: 重複するスコア値が存在します！",
             info: "<b>💡 参考事項:</b><br>各項目のスコアは、自然に<b>次の項目のスコアの直前まで</b>繋がります。<br>(例: [2: リンゴ], [5: 木] 入力時 → 2~4点はリンゴ、5点以上は木を出力)",
             scoreLabel: "スコア名:",
@@ -362,9 +373,7 @@
         scoreInputs.forEach((input) => {
             const rawVal = input.value;
             if (rawVal === "") return;
-            
             const val = Math.floor(parseFloat(rawVal)).toString();
-            
             if (scoreList.includes(val)) {
                 hasDuplicate = true;
                 scoreInputs.forEach(i => { 
@@ -383,16 +392,13 @@
         const scoreEls = document.querySelectorAll('.score');
         const textEls = document.querySelectorAll('.text');
         let data = [];
-
         for (let i = 0; i < scoreEls.length; i++) {
             const rawScore = scoreEls[i].value !== "" ? scoreEls[i].value : scoreEls[i].placeholder;
             const textVal = textEls[i].value;
-
             if (rawScore !== "" && textVal !== "") {
                 data.push({ s: Math.floor(parseFloat(rawScore)), t: textVal });
             }
         }
-
         if (data.length === 0) return;
         data.sort((a, b) => a.s - b.s);
 
