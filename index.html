@@ -20,7 +20,7 @@
             margin: 0;
             padding: 10px;
             display: flex;
-            justify-content: center;
+            justify(content): center;
         }
 
         .container {
@@ -31,6 +31,7 @@
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             box-sizing: border-box;
+            margin: auto;
         }
 
         .lang-switch {
@@ -221,7 +222,7 @@
     <div class="scroll-window" id="input-container">
         <div class="row">
             <input type="number" class="score" placeholder="0" value="0" oninput="validateAll()">
-            <input type="text" class="text" placeholder="출력할 문자" oninput="validateAll()">
+            <input type="text" class="text" placeholder="출력할 문자" onfocus="finalizeScore(this)" oninput="validateAll()">
             <button class="btn-del" style="visibility: hidden;">X</button>
         </div>
     </div>
@@ -261,9 +262,9 @@
         },
         ja: {
             title: "MCBE動的インデックス生成器",
-            desc: "動的インデックスの原理を利用したツール",
+            desc: "動적インデックスの原理を利用したツール",
             alert: "⚠️ 警告: 重複するスコア値が存在します！",
-            info: "<b>💡 参考事項:</b><br>各項目のスコアは、自然に<b>次の項目のスコアの直前まで</b>繋がります。<br>(例: [2: リンゴ], [5: 木] 入力時 → 2~4点はリンゴ、5点以上は木を出力)",
+            info: "<b>💡 참고 사항:</b><br>各項目のスコアは、自然に<b>次の項目のスコアの直前まで</b>繋がります。<br>(例: [2: リンゴ], [5: 木] 入力時 → 2~4点はリンゴ、5点以上は木を出力)",
             scoreLabel: "スコア名:",
             addBtn: "+ 項目を追加",
             genBtn: "コマンドを生成",
@@ -291,6 +292,16 @@
         });
     }
 
+    // 스코어 확정 함수: 부모(row) 안의 score input을 찾아 placeholder 값을 실제 값으로 넣음
+    function finalizeScore(textInput) {
+        const row = textInput.parentElement;
+        const scoreInput = row.querySelector('.score');
+        if (scoreInput && scoreInput.value === "" && scoreInput.placeholder !== "") {
+            scoreInput.value = scoreInput.placeholder;
+            validateAll(); // 확정 후 즉시 중복 체크
+        }
+    }
+
     function getNextScoreHint() {
         const scoreInputs = document.querySelectorAll('.score');
         let maxVal = -1;
@@ -302,28 +313,24 @@
     }
 
     function addRow() {
-        // 1. 기존에 비어있는 스코어 칸들을 Placeholder 값으로 실제 확정시킴
-        const scoreInputs = document.querySelectorAll('.score');
-        scoreInputs.forEach(input => {
+        // 기존 비어있는 모든 스코어 확정
+        document.querySelectorAll('.score').forEach(input => {
             if (input.value === "" && input.placeholder !== "") {
                 input.value = input.placeholder;
             }
         });
 
-        // 2. 새 항목 추가
         const container = document.getElementById('input-container');
         const nextHint = getNextScoreHint();
         const div = document.createElement('div');
         div.className = 'row';
         div.innerHTML = `
             <input type="number" class="score" placeholder="${nextHint}" oninput="validateAll()">
-            <input type="text" class="text" placeholder="${translations[currentLang].placeholderText}" oninput="validateAll()">
+            <input type="text" class="text" placeholder="${translations[currentLang].placeholderText}" onfocus="finalizeScore(this)" oninput="validateAll()">
             <button class="btn-del" onclick="this.parentElement.remove(); validateAll()">X</button>
         `;
         container.appendChild(div);
         container.scrollTop = container.scrollHeight;
-
-        // 3. 중복 검사 실행
         validateAll();
     }
 
