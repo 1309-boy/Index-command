@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -20,7 +20,7 @@
             margin: 0;
             padding: 10px;
             display: flex;
-            justify(content): center;
+            justify-content: center;
         }
 
         .container {
@@ -194,48 +194,60 @@
         }
     </style>
 </head>
-<body>
+<body onload="setLang('en')">
 
 <div class="container">
     <div class="lang-switch">
-        <button class="lang-btn active" onclick="setLang('ko')">🇰🇷</button>
-        <button class="lang-btn" onclick="setLang('en')">🇺🇸</button>
+        <button class="lang-btn active" onclick="setLang('en')">🇺🇸</button>
+        <button class="lang-btn" onclick="setLang('ko')">🇰🇷</button>
         <button class="lang-btn" onclick="setLang('ja')">🇯🇵</button>
     </div>
 
-    <h2 id="ui-title">MCBE 동적 인덱싱 제너레이터</h2>
-    <p class="description" id="ui-desc">동적 인덱싱 원리를 이용한 커맨드 생성 도구</p>
+    <h2 id="ui-title">MCBE Indexing Generator</h2>
+    <p class="description" id="ui-desc">Command tool using dynamic indexing</p>
 
-    <div class="alert-box" id="ui-alert">⚠️ 경고: 중복된 스코어 값이 존재합니다!</div>
+    <div class="alert-box" id="ui-alert">⚠️ Warning: Duplicate score detected!</div>
     
     <div class="info-box" id="ui-info">
-        <b>💡 참고 사항:</b><br>
-        각 항목의 스코어는 자연스럽게 <b>다음 항목의 스코어 직전까지</b> 범위로 이어집니다.<br>
-        (예: [2: 사과], [5: 나무] 입력 시 → 2~4점은 사과, 5점 이상은 나무 출력)
+        <b>💡 Note:</b><br>
+        Each score naturally extends to just before the next item's score.<br>
+        (e.g., [2: Apple], [5: Tree] → 2-4 outputs Apple, 5+ outputs Tree)
     </div>
 
     <div class="config-section">
-        <span id="ui-score-label">사용할 스코어 이름:</span>
-        <input type="text" id="objName" value="play" oninput="validateAll()">
+        <span id="ui-score-label">Scoreboard Name:</span>
+        <input type="text" id="objName" value="obj" oninput="validateAll()">
     </div>
 
     <div class="scroll-window" id="input-container">
         <div class="row">
             <input type="number" class="score" placeholder="0" value="0" oninput="validateAll()">
-            <input type="text" class="text" placeholder="출력할 문자" onfocus="finalizeScore(this)" oninput="validateAll()">
+            <input type="text" class="text" placeholder="Text to output" onfocus="finalizeScore(this)" oninput="validateAll()">
             <button class="btn-del" style="visibility: hidden;">X</button>
         </div>
     </div>
 
-    <button class="btn-add" id="ui-add-btn" onclick="addRow()">+ 항목 추가</button>
-    <button class="btn-gen" id="ui-gen-btn" onclick="generateCommand()">최적화 커맨드 생성</button>
+    <button class="btn-add" id="ui-add-btn" onclick="addRow()">+ Add Item</button>
+    <button class="btn-gen" id="ui-gen-btn" onclick="generateCommand()">Generate Optimized Command</button>
 
     <textarea id="output" readonly placeholder="Output..."></textarea>
-    <button class="copy-btn" id="ui-copy-btn" onclick="copyCommand()">결과 복사하기</button>
+    <button class="copy-btn" id="ui-copy-btn" onclick="copyCommand()">Copy Result</button>
 </div>
 
 <script>
     const translations = {
+        en: {
+            title: "MCBE Indexing Generator",
+            desc: "Command tool using dynamic indexing",
+            alert: "⚠️ Warning: Duplicate score detected!",
+            info: "<b>💡 Note:</b><br>Each score naturally extends to just before the next item's score.<br>(e.g., [2: Apple], [5: Tree] → 2-4 outputs Apple, 5+ outputs Tree)",
+            scoreLabel: "Scoreboard Name:",
+            addBtn: "+ Add Item",
+            genBtn: "Generate Optimized Command",
+            copyBtn: "Copy Result",
+            placeholderText: "Text to output",
+            copyMsg: "Copied!"
+        },
         ko: {
             title: "MCBE 동적 인덱싱 제너레이터",
             desc: "동적 인덱싱 원리를 이용한 커맨드 생성 도구",
@@ -248,33 +260,21 @@
             placeholderText: "출력할 문자",
             copyMsg: "복사되었습니다!"
         },
-        en: {
-            title: "MCBE Indexing Generator",
-            desc: "Command tool using dynamic indexing",
-            alert: "⚠️ Warning: Duplicate score detected!",
-            info: "<b>💡 Note:</b><br>Each score naturally extends to just before the next item's score.<br>(e.g., [2: Apple], [5: Tree] → 2-4 outputs Apple, 5+ outputs Tree)",
-            scoreLabel: "Scoreboard Name:",
-            addBtn: "+ Add Item",
-            genBtn: "Generate Command",
-            copyBtn: "Copy Result",
-            placeholderText: "Text to output",
-            copyMsg: "Copied!"
-        },
         ja: {
             title: "MCBE動的インデックス生成器",
-            desc: "動적インデックスの原理を利用したツール",
+            desc: "動的インデックスの原理を利用したコマンド生成ツール",
             alert: "⚠️ 警告: 重複するスコア値が存在します！",
-            info: "<b>💡 참고 사항:</b><br>各項目のスコアは、自然に<b>次の項目のスコアの直前まで</b>繋がります。<br>(例: [2: リンゴ], [5: 木] 入力時 → 2~4点はリンゴ、5点以上は木を出力)",
-            scoreLabel: "スコア名:",
+            info: "<b>💡 参考事項:</b><br>各項目のスコアは、自然に<b>次の項目のスコアの直前まで</b>繋がります。<br>(例: [2: リンゴ], [5: 木] 入力時 → 2~4点はリンゴ、5点以上は木を出力)",
+            scoreLabel: "スコアボード名:",
             addBtn: "+ 項目を追加",
-            genBtn: "コマンドを生成",
+            genBtn: "最適化コマンドを生成",
             copyBtn: "結果をコピー",
             placeholderText: "出力する文字",
             copyMsg: "コピーしました！"
         }
     };
 
-    let currentLang = 'ko';
+    let currentLang = 'en';
 
     function setLang(lang) {
         currentLang = lang;
@@ -287,18 +287,19 @@
         document.getElementById('ui-gen-btn').innerText = translations[lang].genBtn;
         document.getElementById('ui-copy-btn').innerText = translations[lang].copyBtn;
         document.querySelectorAll('.text').forEach(el => el.placeholder = translations[lang].placeholderText);
+        
         document.querySelectorAll('.lang-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.innerText.includes(lang === 'ko' ? '🇰🇷' : lang === 'en' ? '🇺🇸' : '🇯🇵'));
+            const flag = lang === 'en' ? '🇺🇸' : lang === 'ko' ? '🇰🇷' : '🇯🇵';
+            btn.classList.toggle('active', btn.innerText.includes(flag));
         });
     }
 
-    // 스코어 확정 함수: 부모(row) 안의 score input을 찾아 placeholder 값을 실제 값으로 넣음
     function finalizeScore(textInput) {
         const row = textInput.parentElement;
         const scoreInput = row.querySelector('.score');
         if (scoreInput && scoreInput.value === "" && scoreInput.placeholder !== "") {
             scoreInput.value = scoreInput.placeholder;
-            validateAll(); // 확정 후 즉시 중복 체크
+            validateAll();
         }
     }
 
@@ -313,7 +314,6 @@
     }
 
     function addRow() {
-        // 기존 비어있는 모든 스코어 확정
         document.querySelectorAll('.score').forEach(input => {
             if (input.value === "" && input.placeholder !== "") {
                 input.value = input.placeholder;
@@ -359,7 +359,7 @@
     }
 
     function generateCommand() {
-        const obj = document.getElementById('objName').value || 'play';
+        const obj = document.getElementById('objName').value || 'obj';
         const scoreEls = document.querySelectorAll('.score');
         const textEls = document.querySelectorAll('.text');
         let data = [];
