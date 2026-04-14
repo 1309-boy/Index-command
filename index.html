@@ -110,13 +110,13 @@
 
         .row {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             margin-bottom: 10px;
             align-items: center;
         }
 
         input {
-            padding: 12px;
+            padding: 12px 8px;
             border: 1px solid #ddd;
             border-radius: 10px;
             font-size: 16px; 
@@ -124,13 +124,19 @@
             box-sizing: border-box;
         }
 
-        /* 숫자 입력칸 가로 크기 축소 */
-        input.score { flex: 0 0 65px; text-align: center; padding: 12px 5px; }
-        input.text { flex: 1; }
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+        }
+
+        /* 스코어 칸 가로 비율 극대화 축소 */
+        input.score { flex: 0 0 40px; text-align: center; }
+        input.text { flex: 1; min-width: 0; }
         input.error { border-color: var(--error) !important; background-color: #fffafa; }
 
         button {
-            padding: 14px 15px;
+            padding: 14px 12px;
             border: none;
             border-radius: 12px;
             cursor: pointer;
@@ -159,8 +165,8 @@
         .btn-del {
             background: #fdf2f2;
             color: var(--error);
-            padding: 12px;
-            flex: 0 0 45px;
+            flex: 0 0 40px;
+            padding: 12px 0;
         }
 
         textarea {
@@ -188,8 +194,8 @@
         @media (min-width: 600px) {
             .container { padding: 40px; }
             .config-section { flex-direction: row; align-items: center; }
-            .row { gap: 12px; }
-            input.score { flex: 0 0 80px; }
+            .row { gap: 10px; }
+            input.score { flex: 0 0 45px; }
             h2 { font-size: 2rem; }
             .scroll-window { max-height: 400px; }
         }
@@ -262,11 +268,11 @@
             copyMsg: "복사되었습니다!"
         },
         ja: {
-            title: "MCBE動的インデックス生成器",
-            desc: "動的インデックスの原理を利用したコマンド生成ツール",
+            title: "MCBE動적インデックス生成器",
+            desc: "動적インデックスの原理を利用したツール",
             alert: "⚠️ 警告: 重複するスコア値が存在します！",
             info: "<b>💡 参考事項:</b><br>各項目のスコアは、自然に<b>次の項目のスコアの直前まで</b>繋がります。<br>(例: [2: リンゴ], [5: 木] 入力時 → 2~4点はリンゴ、5点以上は木を出力)",
-            scoreLabel: "スコアボード名:",
+            scoreLabel: "スコア名:",
             addBtn: "+ 項目を追加",
             genBtn: "コマンド生成",
             copyBtn: "結果をコピー",
@@ -414,7 +420,7 @@
                 const buildMid = (gs) => {
                     const sel = gs.map(g => `{"selector":"@s[scores={${obj}=${g[0].s}..}]"}`);
                     const sub = gs.map(g => makeSubGroup(g)).reverse();
-                    return `{"translate":"%%${sel.length + 1}","with":{"rawtext":[sel.join(',')},${sub.join(',')}]}}`;
+                    return `{"translate":"%%${sel.length + 1}","with":{"rawtext":[${sel.join(',')},${sub.join(',')}]}}`;
                 };
                 result = `{"translate":"%%3","with":{"rawtext":[{"selector":"@s[scores={${obj}=${partB[0][0].s}..}]"},{"selector":"@s[scores={${obj}=0..}]"},${buildMid(partB)},${buildMid(partA)}]}}`;
             }
