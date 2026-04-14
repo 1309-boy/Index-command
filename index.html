@@ -27,7 +27,7 @@
             width: 100%;
             max-width: 850px;
             background: white;
-            padding: 25px;
+            padding: 20px;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             box-sizing: border-box;
@@ -124,12 +124,13 @@
             box-sizing: border-box;
         }
 
-        input.score { flex: 0 0 85px; text-align: center; }
+        /* 숫자 입력칸 가로 크기 축소 */
+        input.score { flex: 0 0 65px; text-align: center; padding: 12px 5px; }
         input.text { flex: 1; }
         input.error { border-color: var(--error) !important; background-color: #fffafa; }
 
         button {
-            padding: 14px 20px;
+            padding: 14px 15px;
             border: none;
             border-radius: 12px;
             cursor: pointer;
@@ -188,7 +189,7 @@
             .container { padding: 40px; }
             .config-section { flex-direction: row; align-items: center; }
             .row { gap: 12px; }
-            input.score { flex: 0 0 130px; }
+            input.score { flex: 0 0 80px; }
             h2 { font-size: 2rem; }
             .scroll-window { max-height: 400px; }
         }
@@ -413,7 +414,7 @@
                 const buildMid = (gs) => {
                     const sel = gs.map(g => `{"selector":"@s[scores={${obj}=${g[0].s}..}]"}`);
                     const sub = gs.map(g => makeSubGroup(g)).reverse();
-                    return `{"translate":"%%${sel.length + 1}","with":{"rawtext":[${sel.join(',')},${sub.join(',')}]}}`;
+                    return `{"translate":"%%${sel.length + 1}","with":{"rawtext":[sel.join(',')},${sub.join(',')}]}}`;
                 };
                 result = `{"translate":"%%3","with":{"rawtext":[{"selector":"@s[scores={${obj}=${partB[0][0].s}..}]"},{"selector":"@s[scores={${obj}=0..}]"},${buildMid(partB)},${buildMid(partA)}]}}`;
             }
