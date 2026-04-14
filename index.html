@@ -33,7 +33,7 @@
             box-sizing: border-box;
         }
 
-        /* Language Switcher - 상단 중앙 배치 */
+        /* Language Switcher - 흑백 처리 제거 */
         .lang-switch {
             display: flex;
             justify-content: center;
@@ -49,11 +49,9 @@
             border-radius: 10px;
             padding: 5px;
             transition: 0.2s;
-            filter: grayscale(0.8);
         }
 
         .lang-btn.active {
-            filter: grayscale(0);
             border-color: var(--primary);
             background: rgba(39, 174, 96, 0.05);
         }
@@ -68,7 +66,7 @@
             border-radius: 12px;
             margin-bottom: 20px;
             font-size: 0.85rem;
-            line-height: 1.5;
+            line-height: 1.6;
         }
 
         .alert-box {
@@ -122,7 +120,7 @@
             padding: 12px;
             border: 1px solid #ddd;
             border-radius: 10px;
-            font-size: 16px; /* 모바일 줌 방지 */
+            font-size: 16px; 
             transition: all 0.2s;
             box-sizing: border-box;
         }
@@ -187,7 +185,6 @@
             margin-top: 10px;
         }
 
-        /* PC 버전 레이아웃 수정 */
         @media (min-width: 600px) {
             .container { padding: 40px; }
             .config-section { flex-direction: row; align-items: center; }
@@ -214,7 +211,8 @@
     
     <div class="info-box" id="ui-info">
         <b>💡 참고 사항:</b><br>
-        각 항목의 스코어는 자연스럽게 <b>다음 항목의 스코어 직전까지</b> 범위로 이어집니다.
+        각 항목의 스코어는 자연스럽게 <b>다음 항목의 스코어 직전까지</b> 범위로 이어집니다.<br>
+        (예: [2: 사과], [5: 나무] 입력 시 → 2~4점은 사과, 5점 이상은 나무 출력)
     </div>
 
     <div class="config-section">
@@ -243,7 +241,7 @@
             title: "MCBE 동적 인덱싱 제너레이터",
             desc: "동적 인덱싱 원리를 이용한 커맨드 생성 도구",
             alert: "⚠️ 경고: 중복된 스코어 값이 존재합니다!",
-            info: "<b>💡 참고 사항:</b><br>각 항목의 스코어는 자연스럽게 <b>다음 항목의 스코어 직전까지</b> 범위로 이어집니다.",
+            info: "<b>💡 참고 사항:</b><br>각 항목의 스코어는 자연스럽게 <b>다음 항목의 스코어 직전까지</b> 범위로 이어집니다.<br>(예: [2: 사과], [5: 나무] 입력 시 → 2~4점은 사과, 5점 이상은 나무 출력)",
             scoreLabel: "사용할 스코어 이름:",
             addBtn: "+ 항목 추가",
             genBtn: "최적화 커맨드 생성",
@@ -255,7 +253,7 @@
             title: "MCBE Indexing Generator",
             desc: "Command tool using dynamic indexing",
             alert: "⚠️ Warning: Duplicate score detected!",
-            info: "<b>💡 Note:</b><br>Scores naturally extend to just before the next item's score.",
+            info: "<b>💡 Note:</b><br>Each score naturally extends to just before the next item's score.<br>(e.g., [2: Apple], [5: Tree] → 2-4 outputs Apple, 5+ outputs Tree)",
             scoreLabel: "Scoreboard Name:",
             addBtn: "+ Add Item",
             genBtn: "Generate Command",
@@ -264,10 +262,10 @@
             copyMsg: "Copied!"
         },
         ja: {
-            title: "MCBE動的インデックス生成器",
-            desc: "動的インデックスの原理を利用したツール",
+            title: "MCBE動적インデックス生成器",
+            desc: "動적インデックスの原理を利用したツール",
             alert: "⚠️ 警告: 重複するスコア値が存在します！",
-            info: "<b>💡 参考事項:</b><br>各スコアは自然に<b>次のスコアの直전まで</b>繋がります。",
+            info: "<b>💡 参考事項:</b><br>各項目のスコアは、自然に<b>次の項目のスコアの直前まで</b>の範囲として繋がります。<br>(例: [2: リンゴ], [5: 木] 入력時 → 2~4点はリンゴ、5点以上は木を出力)",
             scoreLabel: "スコア名:",
             addBtn: "+ 項目を追加",
             genBtn: "コマンドを生成",
