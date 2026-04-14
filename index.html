@@ -221,7 +221,7 @@
 
     <div class="scroll-window" id="input-container">
         <div class="row">
-            <input type="number" class="score" placeholder="0" value="0" step="any" oninput="validateAll()">
+            <input type="number" class="score" placeholder="0" value="0" step="any" onblur="normalizeScore(this)" oninput="validateAll()">
             <input type="text" class="text" placeholder="Text to output" onfocus="finalizeScore(this)" oninput="validateAll()">
             <button class="btn-del" style="visibility: hidden;">X</button>
         </div>
@@ -261,11 +261,11 @@
             copyMsg: "복사되었습니다!"
         },
         ja: {
-            title: "MCBE動的インデックス生成器",
-            desc: "動적インデックスの原理を利用したコマンド生成ツール",
+            title: "MCBE動적インデックス生成器",
+            desc: "動적インデックスの原理を利用したツール",
             alert: "⚠️ 警告: 重複するスコア値が存在します！",
             info: "<b>💡 参考事項:</b><br>各項目のスコアは、自然に<b>次の項目のスコアの直前まで</b>繋がります。<br>(例: [2: リンゴ], [5: 木] 入力時 → 2~4点はリンゴ、5点以上は木を出力)",
-            scoreLabel: "スコアボード名:",
+            scoreLabel: "スコア名:",
             addBtn: "+ 項目を追加",
             genBtn: "コマンド生成",
             copyBtn: "結果をコピー",
@@ -294,13 +294,22 @@
         });
     }
 
+    // 숫자 정규화 함수 (2.6 -> 2, 07 -> 7)
+    function normalizeScore(input) {
+        if (input.value !== "") {
+            const val = Math.floor(parseFloat(input.value));
+            input.value = isNaN(val) ? "" : val;
+            validateAll();
+        }
+    }
+
     function finalizeScore(textInput) {
         const row = textInput.parentElement;
         const scoreInput = row.querySelector('.score');
         if (scoreInput && scoreInput.value === "" && scoreInput.placeholder !== "") {
             scoreInput.value = scoreInput.placeholder;
-            validateAll();
         }
+        normalizeScore(scoreInput); // 확정할 때 정규화도 같이 수행
     }
 
     function getNextScoreHint() {
@@ -318,6 +327,7 @@
             if (input.value === "" && input.placeholder !== "") {
                 input.value = input.placeholder;
             }
+            normalizeScore(input);
         });
 
         const container = document.getElementById('input-container');
@@ -325,7 +335,7 @@
         const div = document.createElement('div');
         div.className = 'row';
         div.innerHTML = `
-            <input type="number" class="score" placeholder="${nextHint}" step="any" oninput="validateAll()">
+            <input type="number" class="score" placeholder="${nextHint}" step="any" onblur="normalizeScore(this)" oninput="validateAll()">
             <input type="text" class="text" placeholder="${translations[currentLang].placeholderText}" onfocus="finalizeScore(this)" oninput="validateAll()">
             <button class="btn-del" onclick="this.parentElement.remove(); validateAll()">X</button>
         `;
@@ -352,7 +362,7 @@
             if (scoreList.includes(val)) {
                 hasDuplicate = true;
                 scoreInputs.forEach(i => { 
-                    if(Math.floor(parseFloat(i.value)).toString() === val) i.classList.add('error'); 
+                    if(i.value !== "" && Math.floor(parseFloat(i.value)).toString() === val) i.classList.add('error'); 
                 });
             }
             scoreList.push(val);
@@ -373,7 +383,6 @@
             const textVal = textEls[i].value;
 
             if (rawScore !== "" && textVal !== "") {
-                // 소수점 버림 처리
                 data.push({ s: Math.floor(parseFloat(rawScore)), t: textVal });
             }
         }
