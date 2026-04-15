@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MCBE Indexing Generator Pro</title>
+    <title>MCBE Indexing Generator</title>
     <style>
         :root { --primary: #27ae60; --error: #e74c3c; --dark: #2c3e50; --light-bg: #f8f9fa; --text-gray: #7f8c8d; }
         body { font-family: 'Pretendard', sans-serif; background-color: #f0f2f5; color: var(--dark); margin: 0; padding: 10px; display: flex; justify-content: center; }
@@ -65,7 +65,7 @@
     const translations = {
         en: { title: "MCBE Indexing Generator", desc: "Command tool using dynamic indexing", alert: "⚠️ Warning: Duplicate score detected!", info: "<b>💡 Note:</b><br>Each score naturally extends to just before the next item's score.<br>(e.g., [2: Apple], [5: Tree] → 2-4 outputs Apple, 5+ outputs Tree)", scoreLabel: "Scoreboard Name:", addBtn: "+ Add Item", genBtn: "Generate Command", copyBtn: "Copy Result", placeholderText: "Text to output", copyMsg: "Copied!" },
         ko: { title: "MCBE 동적 인덱싱 제너레이터", desc: "동적 인덱싱 원리를 이용한 커맨드 생성 도구", alert: "⚠️ 경고: 중복된 스코어 값이 존재합니다!", info: "<b>💡 참고 사항:</b><br>각 항목의 스코어는 자연스럽게 <b>다음 항목의 스코어 직전까지</b> 범위로 이어집니다.<br>(예: [2: 사과], [5: 나무] 입력 시 → 2~4점은 사과, 5점 이상은 나무 출력)", scoreLabel: "스코어 이름:", addBtn: "+ 항목 추가", genBtn: "커맨드 생성", copyBtn: "결과 복사하기", placeholderText: "출력할 문자", copyMsg: "복사되었습니다!" },
-        ja: { title: "MCBE動적インデックス生成器", desc: "動적インデックスの原理を利用したツール", alert: "⚠️ 警告: 重複するスコア値が存在します！", info: "<b>💡 参考事項:</b><br>各項目のスコアは、自然に<b>次の項目のスコアの直前まで</b>繋がります。<br>(例: [2: リンゴ], [5: 木] 入力時 → 2~4点はリンゴ、5点以上は木を出力)", scoreLabel: "スコア名:", addBtn: "+ 項目を追加", genBtn: "コマンド生成", copyBtn: "結果をコピー", placeholderText: "出力する文字", copyMsg: "コピーしました！" }
+        ja: { title: "MCBE動的インデックス生成器", desc: "動的インデックスの原理を利用したコマンド作成ツール", alert: "⚠️ 警告: 重複するスコア値が存在します！", info: "<b>💡 参考事項:</b><br>各項目のスコアは、自然に<b>次の項目のスコアの直前まで</b>繋がります。<br>(例: [2: リンゴ], [5: 木] 入力時 → 2~4点はリンゴ、5点以上は木を出力)", scoreLabel: "スコア名:", addBtn: "+ 項目を追加", genBtn: "コマンド生成", copyBtn: "結果をコピー", placeholderText: "出力する文字", copyMsg: "コピーしました！" }
     };
 
     let currentLang = 'en';
@@ -117,14 +117,10 @@
         genBtn.disabled = hasDuplicate;
     }
 
-    // ⭐ 핵심: %%9 제한 준수 재귀 트리 로직
-    function buildTree(items, objName) {
-        // 단일 항목인 경우 (리프 노드)
+    function buildRecursiveTree(items, objName) {
         if (items.length === 1 && !Array.isArray(items[0])) {
             return `{"text":"${items[0].t}"}`;
         }
-
-        // 8개 이하의 항목들이 리프 노드(데이터 객체)일 경우 -> %%n 그룹 생성
         if (items.length <= 8 && items.every(i => i.t !== undefined)) {
             const n = items.length;
             const selectors = items.map(i => `{"selector":"@s[scores={${objName}=${i.s}..}]"}`);
@@ -132,29 +128,31 @@
             return `{"translate":"%%${n + 1}","with":{"rawtext":[${selectors.join(',')},${texts.join(',')}]}}`;
         }
 
-        // 8개 단위로 나누기 (모든 레이어는 최대 8분기)
-        let chunks = [];
-        for (let i = 0; i < items.length; i += 8) {
-            chunks.push(items.slice(i, i + 8));
+        let currentLayer = items;
+        while (currentLayer.length > 8) {
+            let nextLayer = [];
+            for (let i = 0; i < currentLayer.length; i += 8) {
+                nextLayer.push(currentLayer.slice(i, i + 8));
+            }
+            currentLayer = nextLayer;
         }
 
-        // 청크가 다시 8개를 초과하면, 이 청크들을 다시 8개씩 묶어야 함 (재귀적 그룹화)
-        if (chunks.length > 8) {
-            return buildTree(chunks, objName); // 청크 배열을 다시 묶음
+        function buildBranch(node) {
+            if (!Array.isArray(node)) return `{"text":"${node.t}"}`;
+            if (node.every(i => i.t !== undefined)) {
+                const n = node.length;
+                const selectors = node.map(i => `{"selector":"@s[scores={${objName}=${i.s}..}]"}`);
+                const texts = node.map(i => `{"text":"${i.t}"}`).reverse();
+                return `{"translate":"%%${n + 1}","with":{"rawtext":[${selectors.join(',')},${texts.join(',')}]}}`;
+            }
+            const selectors = node.map(subNode => {
+                const getScore = (n) => (n.s !== undefined ? n.s : getScore(n[0]));
+                return `{"selector":"@s[scores={${objName}=${getScore(subNode)}..}]"}`;
+            });
+            const subTrees = node.map(subNode => buildBranch(subNode)).reverse();
+            return `{"translate":"%%${selectors.length + 1}","with":{"rawtext":[${selectors.join(',')},${subTrees.join(',')}]}}`;
         }
-
-        // 여기서부터는 분기가 확실히 8개 이하임
-        const selectors = chunks.map(chunk => {
-            // 청크 내의 가장 첫 번째 실제 데이터의 스코어 추출
-            const getFirstScore = (c) => {
-                if (c.s !== undefined) return c.s; // 리프
-                return getFirstScore(c[0]); // 중첩 구조 탐색
-            };
-            return `{"selector":"@s[scores={${objName}=${getFirstScore(chunk)}..}]"}`;
-        });
-
-        const subContents = chunks.map(chunk => buildTree(chunk, objName)).reverse();
-        return `{"translate":"%%${selectors.length + 1}","with":{"rawtext":[${selectors.join(',')},${subContents.join(',')}]}}`;
+        return buildBranch(currentLayer);
     }
 
     function generateCommand() {
@@ -169,8 +167,7 @@
         }
         if (data.length === 0) return;
         data.sort((a, b) => a.s - b.s);
-
-        const result = buildTree(data, obj);
+        const result = buildRecursiveTree(data, obj);
         document.getElementById('output').value = `/execute as @a run titleraw @s actionbar {"rawtext":[${result}]}`;
     }
 
