@@ -108,7 +108,6 @@
             margin-bottom: 15px;
         }
 
-        /* 입력줄 레이아웃 핵심 교정 */
         .row {
             display: flex;
             gap: 6px;
@@ -126,14 +125,18 @@
             box-sizing: border-box;
         }
 
-        /* 숫자 칸: 모바일에서도 무조건 작게 고정 */
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+        }
+
         input.score { 
             width: 55px !important; 
             flex: none !important; 
             text-align: center; 
         }
 
-        /* 텍스트 칸: 남는 공간 전부 차지 */
         input.text { 
             flex: 1 !important; 
             min-width: 0; 
@@ -168,7 +171,6 @@
 
         .btn-gen:disabled { background: #ccc; }
 
-        /* 삭제 버튼 크기 최적화 */
         .btn-del {
             background: #fdf2f2;
             color: var(--error);
@@ -206,7 +208,7 @@
             .container { padding: 40px; }
             .config-section { flex-direction: row; align-items: center; }
             .row { gap: 10px; }
-            input.score { width: 70px !important; } /* PC에선 조금 더 여유있게 */
+            input.score { width: 70px !important; }
             h2 { font-size: 2rem; }
             .scroll-window { max-height: 400px; }
         }
@@ -283,7 +285,7 @@
             desc: "動的インデックスの原理を利用したコマンド生成ツール",
             alert: "⚠️ 警告: 重複するスコア値が存在します！",
             info: "<b>💡 参考事項:</b><br>各項目のスコアは、自然に<b>次の項目のスコアの直前まで</b>繋がります。<br>(例: [2: リンゴ], [5: 木] 入力時 → 2~4点はリンゴ、5点以上は木を出力)",
-            scoreLabel: "スコア名:",
+            scoreLabel: "スコアボード名:",
             addBtn: "+ 項目を追加",
             genBtn: "コマンド生成",
             copyBtn: "結果をコピー",
@@ -305,7 +307,6 @@
         document.getElementById('ui-gen-btn').innerText = translations[lang].genBtn;
         document.getElementById('ui-copy-btn').innerText = translations[lang].copyBtn;
         document.querySelectorAll('.text').forEach(el => el.placeholder = translations[lang].placeholderText);
-        
         document.querySelectorAll('.lang-btn').forEach(btn => {
             const flag = lang === 'en' ? '🇺🇸' : lang === 'ko' ? '🇰🇷' : '🇯🇵';
             btn.classList.toggle('active', btn.innerText.includes(flag));
@@ -341,12 +342,9 @@
 
     function addRow() {
         document.querySelectorAll('.score').forEach(input => {
-            if (input.value === "" && input.placeholder !== "") {
-                input.value = input.placeholder;
-            }
+            if (input.value === "" && input.placeholder !== "") input.value = input.placeholder;
             normalizeScore(input);
         });
-
         const container = document.getElementById('input-container');
         const nextHint = getNextScoreHint();
         const div = document.createElement('div');
@@ -367,24 +365,58 @@
         const genBtn = document.getElementById('ui-gen-btn');
         const scoreList = [];
         let hasDuplicate = false;
-
         scoreInputs.forEach(input => input.classList.remove('error'));
-
         scoreInputs.forEach((input) => {
             const rawVal = input.value;
             if (rawVal === "") return;
             const val = Math.floor(parseFloat(rawVal)).toString();
             if (scoreList.includes(val)) {
                 hasDuplicate = true;
-                scoreInputs.forEach(i => { 
-                    if(i.value !== "" && Math.floor(parseFloat(i.value)).toString() === val) i.classList.add('error'); 
-                });
+                scoreInputs.forEach(i => { if(i.value !== "" && Math.floor(parseFloat(i.value)).toString() === val) i.classList.add('error'); });
             }
             scoreList.push(val);
         });
-
         alertBox.style.display = hasDuplicate ? 'block' : 'none';
         genBtn.disabled = hasDuplicate;
+    }
+
+    // ⭐ 재귀적 트리 생성기 (최대 9분기 제한)
+    function buildRecursiveTree(dataList, objName) {
+        if (dataList.length === 1 && dataList[0].t !== undefined) {
+            return `{"text":"${dataList[0].t}"}`; // 단일 텍스트 리프
+        }
+
+        // 하위 그룹이 8개 이하일 경우 (리프 노드 도달 직전)
+        if (dataList.every(item => item.t !== undefined) && dataList.length <= 8) {
+            const n = dataList.length;
+            const selectors = dataList.map(item => `{"selector":"@s[scores={${objName}=${item.s}..}]"}`);
+            const texts = dataList.map(item => `{"text":"${item.t}"}`).reverse();
+            return `{"translate":"%%${n + 1}","with":{"rawtext":[${selectors.join(',')},${texts.join(',')}]}}`;
+        }
+
+        // 8개 단위로 그룹화하여 상위 레이어 생성
+        let chunks = [];
+        for (let i = 0; i < dataList.length; i += 8) {
+            chunks.push(dataList.slice(i, i + 8));
+        }
+
+        const selectors = chunks.map(chunk => {
+            // 각 청크의 첫 번째 스코어 추출 (리프면 .s, 서브트리면 첫 요소의 첫 스코어)
+            const firstItem = chunk[0];
+            const firstScore = firstItem.s !== undefined ? firstItem.s : firstItem.score;
+            return `{"selector":"@s[scores={${objName}=${firstScore}..}]"}`;
+        });
+
+        const subTrees = chunks.map(chunk => {
+            // 리프 항목들이면 바로 텍스트 그룹 생성, 아니면 재귀
+            if (chunk[0].t !== undefined) {
+                return buildRecursiveTree(chunk, objName);
+            } else {
+                return buildRecursiveTree(chunk, objName);
+            }
+        }).reverse();
+
+        return `{"translate":"%%${selectors.length + 1}","with":{"rawtext":[${selectors.join(',')},${subTrees.join(',')}]}}`;
     }
 
     function generateCommand() {
@@ -395,43 +427,13 @@
         for (let i = 0; i < scoreEls.length; i++) {
             const rawScore = scoreEls[i].value !== "" ? scoreEls[i].value : scoreEls[i].placeholder;
             const textVal = textEls[i].value;
-            if (rawScore !== "" && textVal !== "") {
-                data.push({ s: Math.floor(parseFloat(rawScore)), t: textVal });
-            }
+            if (rawScore !== "" && textVal !== "") data.push({ s: Math.floor(parseFloat(rawScore)), t: textVal });
         }
         if (data.length === 0) return;
         data.sort((a, b) => a.s - b.s);
 
-        const makeSubGroup = (items) => {
-            const n = items.length;
-            const selectors = items.map(item => `{"selector":"@s[scores={${obj}=${item.s}..}]"}`);
-            const lyrics = items.map(item => `{"text":"${item.t}"}`).reverse();
-            return `{"translate":"%%${n + 1}","with":{"rawtext":[${selectors.join(',')},${lyrics.join(',')}]}}`;
-        };
-
-        let result = "";
-        if (data.length <= 8) {
-            result = makeSubGroup(data);
-        } else {
-            let groups = [];
-            for (let i = 0; i < data.length; i += 8) groups.push(data.slice(i, i + 8));
-            if (groups.length <= 8) {
-                const selectors = groups.map(g => `{"selector":"@s[scores={${obj}=${g[0].s}..}]"}`);
-                const subs = groups.map(g => makeSubGroup(g)).reverse();
-                result = `{"translate":"%%${selectors.length + 1}","with":{"rawtext":[${selectors.join(',')},${subs.join(',')}]}}`;
-            } else {
-                const mid = Math.ceil(groups.length / 2);
-                const partA = groups.slice(0, mid);
-                const partB = groups.slice(mid);
-                const buildMid = (gs) => {
-                    const sel = gs.map(g => `{"selector":"@s[scores={${obj}=${g[0].s}..}]"}`);
-                    const sub = gs.map(g => makeSubGroup(g)).reverse();
-                    return `{"translate":"%%${sel.length + 1}","with":{"rawtext":[${sel.join(',')},${sub.join(',')}]}}`;
-                };
-                result = `{"translate":"%%3","with":{"rawtext":[{"selector":"@s[scores={${obj}=${partB[0][0].s}..}]"},{"selector":"@s[scores={${obj}=0..}]"},${buildMid(partB)},${buildMid(partA)}]}}`;
-            }
-        }
-        document.getElementById('output').value = `/execute as @a run titleraw @s actionbar {"rawtext":[${result}]}`;
+        const finalJson = buildRecursiveTree(data, obj);
+        document.getElementById('output').value = `/execute as @a run titleraw @s actionbar {"rawtext":[${finalJson}]}`;
     }
 
     function copyCommand() {
